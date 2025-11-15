@@ -1,14 +1,67 @@
-# Turborepo starter
+# PayTM Clone - Wallet Application
 
-This is an official starter Turborepo.
+A full-featured digital wallet application built with Next.js, Prisma, and PostgreSQL in a Turborepo monorepo structure.
 
-## Using this example
+## Setup Instructions
 
-Run the following command:
+### 1. Clone and Install
 
-```sh
-npx create-turbo@latest
+```bash
+git clone <repository-url>
+cd paytm-project-starter-monorepo
+npm install
 ```
+
+### 2. Setup PostgreSQL Database
+
+Run PostgreSQL either locally or on the cloud (e.g., neon.tech):
+
+```bash
+docker run -e POSTGRES_PASSWORD=mysecretpassword -d -p 5432:5432 postgres
+```
+
+### 3. Configure Environment Variables
+
+- Copy over all `.env.example` files to `.env`
+- Update `.env` files everywhere with the correct database URL
+
+Example database URL:
+```
+DATABASE_URL="postgresql://postgres:mysecretpassword@localhost:5432/paytm"
+```
+
+### 4. Setup Database Schema and Seed Data
+
+Navigate to the database package and run migrations:
+
+```bash
+cd packages/db
+npx prisma migrate dev
+npx prisma db seed
+```
+
+### 5. Run the Application
+
+Go to the user app and start the development server:
+
+```bash
+cd apps/user-app
+npm run dev
+```
+
+### 6. Login to the Application
+
+Try logging in with the following test credentials:
+
+- **Phone**: 1111111111
+- **Password**: alice
+
+Or:
+
+- **Phone**: 2222222222
+- **Password**: bob
+
+(See `packages/db/prisma/seed.ts` for all test users)
 
 ## What's inside?
 
@@ -16,66 +69,43 @@ This Turborepo includes the following packages/apps:
 
 ### Apps and Packages
 
-- `docs`: a [Next.js](https://nextjs.org/) app
-- `web`: another [Next.js](https://nextjs.org/) app
-- `@repo/ui`: a stub React component library shared by both `web` and `docs` applications
-- `@repo/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
-- `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
+- `user-app`: Main user-facing Next.js application with wallet features
+- `merchant-app`: Merchant dashboard application
+- `bank-webhook`: Express.js server handling bank webhook callbacks
+- `@repo/ui`: Shared React component library (Button, Card, TextInput, Select, etc.)
+- `@repo/db`: Shared database package with Prisma client
+- `@repo/eslint-config`: Shared ESLint configurations
+- `@repo/typescript-config`: Shared TypeScript configurations
 
-Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
+### Features
 
-### Utilities
+- **User Authentication**: NextAuth.js integration with credential-based login
+- **Dashboard**: User dashboard with balance overview and navigation
+- **Add Money**: Transfer money from bank accounts (HDFC, Axis Bank)
+- **Balance Management**: View unlocked, locked, and total balance
+- **Transaction History**: View all on-ramp transactions with status
+- **Bank Webhook**: Secure webhook handler for processing bank callbacks
+- **Database Seeding**: Pre-populated test users and transactions
 
-This Turborepo has some additional tools already setup for you:
+## Architecture
 
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
+- **Monorepo**: Turborepo for efficient build caching and parallel execution
+- **Frontend**: Next.js 14 with App Router
+- **Backend**: Express.js for webhook handling
+- **Database**: PostgreSQL with Prisma ORM
+- **Authentication**: NextAuth.js
+- **Styling**: Tailwind CSS
 
-### Build
+## Development
 
-To build all apps and packages, run the following command:
+To develop all apps and packages:
 
-```
-cd my-turborepo
-pnpm build
-```
-
-### Develop
-
-To develop all apps and packages, run the following command:
-
-```
-cd my-turborepo
-pnpm dev
-```
-
-### Remote Caching
-
-Turborepo can use a technique known as [Remote Caching](https://turbo.build/repo/docs/core-concepts/remote-caching) to share cache artifacts across machines, enabling you to share build caches with your team and CI/CD pipelines.
-
-By default, Turborepo will cache locally. To enable Remote Caching you will need an account with Vercel. If you don't have an account you can [create one](https://vercel.com/signup), then enter the following commands:
-
-```
-cd my-turborepo
-npx turbo login
+```bash
+npm run dev
 ```
 
-This will authenticate the Turborepo CLI with your [Vercel account](https://vercel.com/docs/concepts/personal-accounts/overview).
+To build all apps and packages:
 
-Next, you can link your Turborepo to your Remote Cache by running the following command from the root of your Turborepo:
-
+```bash
+npm run build
 ```
-npx turbo link
-```
-
-## Useful Links
-
-Learn more about the power of Turborepo:
-
-- [Tasks](https://turbo.build/repo/docs/core-concepts/monorepos/running-tasks)
-- [Caching](https://turbo.build/repo/docs/core-concepts/caching)
-- [Remote Caching](https://turbo.build/repo/docs/core-concepts/remote-caching)
-- [Filtering](https://turbo.build/repo/docs/core-concepts/monorepos/filtering)
-- [Configuration Options](https://turbo.build/repo/docs/reference/configuration)
-- [CLI Usage](https://turbo.build/repo/docs/reference/command-line-reference)
