@@ -29,23 +29,46 @@ export async function p2pTransfer(to: string, amount: number) {
         }
     }
 
-    await prisma.$transaction(async(tx)=>{
-        await tx.$queryRaw`SELECT * FROM "Balance" WHERE "userID"= ${Number(from)} FOR UPDATE`;
-        const fromBalance = await tx.balance.findUnique({
-            where:{userId:Number(from)}
-        })
-        if(!fromBalance || fromBalance.amount < amount){
-            throw new Error('Insufficient funds');
+    try {
+        await prisma.$transaction(async(tx)=>{
+            await tx.$queryRaw`SELECT * FROM "Balance" WHERE "userId"= ${Number(from)} FOR UPDATE`;
+            const fromBalance = await tx.balance.findUnique({
+                where:{userId:Number(from)}
+            })
+            if(!fromBalance || fromBalance.amount < amount){
+                throw new Error('Insufficient funds');
+            }
+
+            // Deduct from sender
+            await tx.balance.update({
+                where:{userId:Number(from)},
+                data:{amount:{decrement:amount}}
+            })
+
+            // Add to receiver
+            await tx.balance.update({
+                where:{userId:toUser.id},
+                data:{amount:{increment:amount}}
+            })
+
+            // Create p2p transfer record
+            await tx.p2pTransfer.create({
+                data:{
+                    fromUserId:Number(from),
+                    toUserId:toUser.id,
+                    amount:amount,
+                    timestamp:new Date()
+                }
+            })
+        });
+
+        return {
+            message: "Transfer successful"
         }
-
-        await tx.balance.update({
-            where:{userId:Number(from)},
-            data:{amount:{decrement:amount}}
-        })
-
-        await tx.balance.update({
-            where:{userId:Number(from)},
-            data:{amount:{increment:amount}}
-        })
-    });
+    } catch (error) {
+        console.error("P2P Transfer error:", error);
+        return {
+            message: error instanceof Error ? error.message : "Transfer failed"
+        }
+    }
 }
